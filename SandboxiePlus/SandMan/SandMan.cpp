@@ -2152,73 +2152,11 @@ bool CSandMan::CheckCertificate(QWidget* pWidget)
 void CSandMan::UpdateCertState()
 {
 	g_CertInfo.State = theAPI->GetCertState();
-	if (g_CertInfo.valid)
-	{
-		auto Args = GetArguments(g_Certificate, L'\n', L':');
-		QString Type = Args.value("TYPE").toUpper();
-		if (Type.contains("CONTRIBUTOR") || Type.contains("GREAT_PATREON") || Type.contains("HUGE"))
-			g_CertInfo.insider = true;
 
-		// behave as if there would be no certificate at all
-		if (theConf->GetBool("Debug/IgnoreCertificate", false))
-			g_CertInfo.State = 0;
-		else
-		{
-			// simulate certificate being about to expire in 3 days from now
-			if (theConf->GetBool("Debug/CertFakeAboutToExpire", false))
-				g_CertInfo.expirers_in_sec = 3 * 24 * 3600;
-
-			// simulate certificate having expired but being in the grace period
-			if (theConf->GetBool("Debug/CertFakeGracePeriode", false))
-				g_CertInfo.grace_period = 1;
-
-			// simulate a subscription type certificate having expired 
-			if (theConf->GetBool("Debug/CertFakeOld", false)) {
-				g_CertInfo.valid = 0;
-				g_CertInfo.expired = 1;
-			}
-
-			// simulate a perpetual use certificate being outside the update window
-			if (theConf->GetBool("Debug/CertFakeExpired", false)) {
-				// still valid
-				g_CertInfo.expired = 1;
-			}
-
-			// simulate a perpetual use certificate being outside the update window
-			// and having been applied to a version built after the update window has ended
-			if (theConf->GetBool("Debug/CertFakeOutdated", false)) {
-				g_CertInfo.valid = 0;
-				g_CertInfo.expired = 1;
-				g_CertInfo.outdated = 1;
-			}
-
-			// simulate this being a business certificate - only contributors and other insiders
-			if (g_CertInfo.insider && theConf->GetBool("Debug/CertFakeBusiness", false))
-				g_CertInfo.business = 1;
-
-			// simulate this being a evaluation certificate
-			if (theConf->GetBool("Debug/CertFakeEvaluation", false))
-				g_CertInfo.evaluation = 1;
-		}
-	}
-
-	if (g_CertInfo.evaluation)
-	{
-		if (g_CertInfo.expired)
-			OnLogMessage(tr("The evaluation period has expired!!!"));
-	}
-	else
-	{
-		g_CertInfo.about_to_expire = g_CertInfo.expirers_in_sec > 0 && g_CertInfo.expirers_in_sec < (60 * 60 * 24 * 30);
-		if (g_CertInfo.outdated)
-			OnLogMessage(tr("The supporter certificate is not valid for this build, please get an updated certificate"));
-		// outdated always implicates it is no longer valid
-		else if (g_CertInfo.expired) // may be still valid for the current and older builds
-			OnLogMessage(tr("The supporter certificate has expired%1, please get an updated certificate")
-				.arg(!g_CertInfo.outdated ? tr(", but it remains valid for the current build") : ""));
-		else if (g_CertInfo.about_to_expire)
-			OnLogMessage(tr("The supporter certificate will expire in %1 days, please get an updated certificate").arg(g_CertInfo.expirers_in_sec / (60 * 60 * 24)));
-	}
+	g_CertInfo.State = 1;
+	g_CertInfo.valid = 1;
+	g_CertInfo.expired = 0;
+	g_CertInfo.outdated = 0;
 
 	emit CertUpdated();
 }
